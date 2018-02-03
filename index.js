@@ -8,14 +8,16 @@ const { listFilesFoldersToCopy , listFilesToTranspile }  = require('./modules/re
 const pluginOutputPath = resolvePath(__dirname , '..','..', '__build__')
 
 
-class ServerlessPlugin 
+class ServerlessPlugin
 {
 
   constructor(serverless, options) {
     this.serverless = serverless;
     this.options = options;
     this.originalServicePath = this.serverless.config.servicePath;
-
+    
+    var pluginOutputPath      = resolvePath( __dirname ,'..' , '..' , '__build__/' )
+    remove(pluginOutputPath)
 
     this.commands = {
       "async-await": {
@@ -42,7 +44,7 @@ class ServerlessPlugin
 
 
   prepareServicePath() {
-    this.serverless.config.servicePath = pluginOutputPath 
+    this.serverless.config.servicePath = pluginOutputPath
   }
 
 
@@ -51,11 +53,11 @@ class ServerlessPlugin
   }
 
 
-  transpileProject() 
+  transpileProject()
   {
 
     var projectPath        = resolvePath(__dirname , '..' , '..')
-    
+
     var filesToTranspile     = []
     var filesFolderToCopy    = []
 
@@ -68,19 +70,19 @@ class ServerlessPlugin
     var fileFolderSourcePath  = ''
     var sourceFileFoldersPath = ''
     var fileFolderCopyPath    = ''
-    
+
     this.serverless.cli.log('Transpiling Async Await...')
 
     createDirectory(pluginOutputPath)
-    
-    
+
+
     filesToTranspile  =  listFilesToTranspile( projectPath , [] )
     filesFolderToCopy =  listFilesFoldersToCopy(projectPath , [] )
 
-   
+
     for(var fileFolder of filesFolderToCopy )
     {
-      
+
 
       sourceFileFoldersPath = resolvePath(projectPath , fileFolder)
       fileFolderCopyPath    = resolvePath(pluginOutputPath , fileFolder)
@@ -92,29 +94,27 @@ class ServerlessPlugin
 
     for(var file of filesToTranspile)
     {
-        
+
         sourceCodePath     = resolvePath(projectPath , file)
         transpiledFilePath = resolvePath(pluginOutputPath , file)
 
         code               = readFile(sourceCodePath , "UTF-8")
-        transpiledCode     = asyncAwaitTranspile(code) 
+        transpiledCode     = asyncAwaitTranspile(code)
 
-        writeFile( transpiledFilePath , transpiledCode)  
+        writeFile( transpiledFilePath , transpiledCode)
     }
 
   }
 
 
-  cleanup() 
+  cleanup()
   {
 
     var serverlessFolder      = resolvePath( __dirname , '..' , '..' , '.serverless/')
     var serverlessBuildFolder = resolvePath( __dirname ,'..' , '..' , '__build__' , '.serverless')
-    var pluginOutputPath      = resolvePath( __dirname ,'..' , '..' , '__build__/' )
 
-    copy(serverlessBuildFolder , serverlessFolder) 
-    remove(pluginOutputPath)
-    
+    copy(serverlessBuildFolder , serverlessFolder)
+
   }
 
 }
